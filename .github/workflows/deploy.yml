@@ -67,13 +67,6 @@ jobs:
         - name: Checkout repository
           uses: actions/checkout@v4
 
-        
-        - name: Varmista että HOST ei ole tyhjä
-          run: |
-              echo "HOST length: ${#HOST}"
-          env:
-            HOST: ${{ secrets.SSH_HOST }}
-
 
         - name: Ensure target directory exists on VM
           uses: appleboy/ssh-action@v1.0.3
