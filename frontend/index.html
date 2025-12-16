@@ -1,26 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Kontti LEMP Esimerkki</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; line-height: 1.5; }
+    h1, h2 { color: #2c3e50; }
+    #msg, #time, #chuck { margin: 1em 0; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9; }
+    button { padding: 0.5em 1em; margin-bottom: 1em; cursor: pointer; }
+  </style>
 </head>
 <body>
-  <h1>Frontend (Nginx) konteilla cicd</h1>
+  <h1>Frontend (Nginx) konteilla CICD</h1>
+
+  <h2>Backend message</h2>
   <div id="msg">Loading...</div>
+
+  <h2>Backend time</h2>
+  <div id="time">Loading time...</div>
+
+  <h2>Chuck Norris Jokes</h2>
+  <button id="newJoke">Get new joke</button>
+  <div id="chuck">Loading joke...</div>
+
   <script>
+    // Backend message
     fetch('/lastweek/api/')
       .then(r => r.json())
       .then(d => { document.getElementById('msg').innerText = d.message; })
       .catch(e => { document.getElementById('msg').innerText = 'API error: ' + e; });
-  </script>
 
-  <div id="time">Loading time...</div>
-  <script>
+    // Backend time
     fetch('/lastweek/api/time/')
       .then(r => r.json())
       .then(d => { document.getElementById('time').innerText = d.message.time; })
       .catch(e => { document.getElementById('time').innerText = 'API error: ' + e; });
-  </script>
 
+    // Chuck Norris jokes
+    const chuckDiv = document.getElementById('chuck');
+    const button = document.getElementById('newJoke');
+
+    async function fetchJoke() {
+      try {
+        const response = await fetch('https://api.chucknorris.io/jokes/random');
+        const data = await response.json();
+        chuckDiv.innerText = data.value;
+      } catch(e) {
+        chuckDiv.innerText = 'Error fetching joke';
+      }
+    }
+
+    button.onclick = fetchJoke;
+
+    // fetch first joke on load
+    fetchJoke();
+  </script>
 </body>
 </html>
