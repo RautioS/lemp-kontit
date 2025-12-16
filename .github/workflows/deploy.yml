@@ -58,6 +58,58 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/lemp-frontend:${{ github.sha }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/lemp-frontend:latest
           cache-to: type=inline
+          
+  test-backend:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: changeme
+          MYSQL_DATABASE: appdb
+          MYSQL_USER: appuser
+          MYSQL_PASSWORD: changeme
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests mysql-connector-python
+
+      - name: Run backend container
+        run: |
+          docker run -d --name lemp-backend-test \
+            -e DB_HOST=localhost \
+            -e DB_USER=appuser \
+            -e DB_PASSWORD=changeme \
+            -e DB_NAME=appdb \
+            -p 8000:8000 \
+            ${{ secrets.DOCKERHUB_USERNAME }}/lemp-backend:latest
+
+      - name: Wait for backend to start
+        run: sleep 10
+
+      - name: Run backend tests
+        run: python backend/test_backend.py
+
+      - name: Cleanup backend container
+        run: docker stop lemp-backend-test && docker rm lemp-backend-test
+
+
 
   
   copy-init-sql:
